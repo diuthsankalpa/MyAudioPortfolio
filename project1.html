@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Portfolio - Gain Station</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; background: #121212; color: white; }
+        .box { border: 2px solid #00ff88; padding: 30px; border-radius: 15px; text-align: center; }
+        input { width: 300px; cursor: pointer; }
+        button { background: #00ff88; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h1>PROJECT 1: GAIN STATION</h1>
+        <button id="powerBtn">START AUDIO</button>
+        <br>
+        <label>Volume Control</label>
+        <br>
+        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+        <h2 id="display">0.50</h2>
+    </div>
+
+    <script>
+        let audioCtx;
+        let oscillator;
+        let gainNode;
+
+        const powerBtn = document.getElementById('powerBtn');
+        const slider = document.getElementById('volumeSlider');
+        const display = document.getElementById('display');
+
+        powerBtn.addEventListener('click', () => {
+            // 1. Initialize the Audio Engine (Like turning on a guitar amp)
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                oscillator = audioCtx.createOscillator();
+                oscillator.type = 'sine'; // A smooth, clean sound
+                
+                gainNode = audioCtx.createGain();
+                gainNode.gain.value = slider.value; // Initial volume
+
+                // 2. CONNECT THE LEGO BLOCKS
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                powerBtn.innerText = "STOP AUDIO";
+                powerBtn.style.background = "#ff4444";
+            } else {
+                // Toggle Off
+                audioCtx.close();
+                audioCtx = null;
+                powerBtn.innerText = "START AUDIO";
+                powerBtn.style.background = "#00ff88";
+            }
+        });
+
+        // 3. THE MATH: Real-time volume change
+        slider.oninput = () => {
+            let val = slider.value;
+            display.innerText = val;
+            if (gainNode) {
+                // This is the core logic: Multiplies signal by value (0.0 to 1.0)
+                gainNode.gain.value = val;
+            }
+        };
+    </script>
+</body>
+</html>

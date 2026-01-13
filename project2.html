@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Portfolio - Distortion Unit</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; background: #121212; color: white; }
+        .box { border: 2px solid #ff0055; padding: 30px; border-radius: 15px; text-align: center; }
+        input { width: 300px; cursor: pointer; }
+        button { background: #ff0055; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 20px; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h1>PROJECT 2: DISTORTION UNIT</h1>
+        <button id="powerBtn">START AUDIO</button>
+        <br>
+        <label>Distortion Amount (Drive)</label>
+        <br>
+        <input type="range" id="driveSlider" min="0" max="100" step="1" value="20">
+        <h2 id="display">20</h2>
+    </div>
+
+    <script>
+        let audioCtx, oscillator, distortionNode;
+
+        const powerBtn = document.getElementById('powerBtn');
+        const slider = document.getElementById('driveSlider');
+        const display = document.getElementById('display');
+
+        // THE MATH: This function reshapes the sound wave
+        function makeDistortionCurve(amount) {
+            let k = typeof amount === 'number' ? amount : 50;
+            let n_samples = 44100;
+            let curve = new Float32Array(n_samples);
+            let deg = Math.PI / 180;
+            for (let i = 0 ; i < n_samples; ++i ) {
+                let x = i * 2 / n_samples - 1;
+                curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
+            }
+            return curve;
+        }
+
+        powerBtn.addEventListener('click', () => {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+                oscillator = audioCtx.createOscillator();
+                oscillator.type = 'triangle'; // Triangle waves distort better than sine!
+                
+                distortionNode = audioCtx.createWaveShaper();
+                distortionNode.curve = makeDistortionCurve(slider.value);
+                distortionNode.oversample = '4x'; // Makes it sound "Higher Quality"
+
+                oscillator.connect(distortionNode);
+                distortionNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                powerBtn.innerText = "STOP AUDIO";
+            } else {
+                audioCtx.close();
+                audioCtx = null;
+                powerBtn.innerText = "START AUDIO";
+            }
+        });
+
+        slider.oninput = () => {
+            display.innerText = slider.value;
+            if (distortionNode) {
+                distortionNode.curve = makeDistortionCurve(parseInt(slider.value));
+            }
+        };
+    </script>
+</body>
+</html>

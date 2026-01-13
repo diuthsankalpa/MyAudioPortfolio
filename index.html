@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Developer Portfolio | Signal Processing</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0b0e14; color: #e0e0e0; margin: 0; padding: 40px; }
+        header { text-align: center; margin-bottom: 50px; }
+        h1 { color: #00ff88; letter-spacing: 2px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
+        .card { background: #1a1f29; border: 1px solid #333; border-radius: 12px; padding: 25px; transition: transform 0.3s; text-align: center; }
+        .card:hover { transform: translateY(-10px); border-color: #00ff88; }
+        .card h2 { margin-top: 0; color: #fff; }
+        .badge { background: #00ff88; color: #0b0e14; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
+        p { line-height: 1.6; color: #aaa; }
+        .btn { display: inline-block; margin-top: 20px; padding: 12px 25px; background: #00ff88; color: #0b0e14; text-decoration: none; border-radius: 6px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AUDIO SIGNAL PROCESSING PORTFOLIO</h1>
+        <p>Built with Web Audio API | No Terminal, Pure Logic</p>
+    </header>
+
+    <div class="grid">
+        <div class="card">
+            <span class="badge">AMPLITUDE</span>
+            <h2>Gain Station</h2>
+            <p>A real-time volume processor using the AudioContext GainNode. Handles linear multiplication of audio buffers.</p>
+            <a href="project1.html" class="btn">Launch Project</a>
+        </div>
+
+        <div class="card">
+            <span class="badge">WAVESHAPING</span>
+            <h2>Distortion Unit</h2>
+            <p>Custom Waveshaper implementation using a Float32Array transfer function to achieve non-linear saturation.</p>
+            <a href="project2.html" class="btn">Launch Project</a>
+        </div>
+
+        <div class="card">
+            <span class="badge">TIME DOMAIN</span>
+            <h2>Space Echo</h2>
+            <p>Digital delay system featuring a feedback loop architecture and real-time parameter smoothing.</p>
+            <a href="project3.html" class="btn">Launch Project</a>
+        </div>
+    </div>
+
+</body>
+</html>

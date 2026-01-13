@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Portfolio - Space Echo</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 50px; background: #121212; color: white; }
+        .box { border: 2px solid #00a2ff; padding: 30px; border-radius: 15px; text-align: center; }
+        .control-group { margin: 20px 0; }
+        input { width: 300px; cursor: pointer; }
+        button { background: #00a2ff; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 20px; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h1>PROJECT 3: SPACE ECHO</h1>
+        <button id="powerBtn">START AUDIO</button>
+        
+        <div class="control-group">
+            <label>Delay Time (Seconds)</label><br>
+            <input type="range" id="timeSlider" min="0" max="1" step="0.01" value="0.3">
+            <h2 id="timeDisplay">0.30s</h2>
+        </div>
+
+        <div class="control-group">
+            <label>Feedback (Echo Intensity)</label><br>
+            <input type="range" id="feedbackSlider" min="0" max="0.9" step="0.01" value="0.4">
+            <h2 id="feedbackDisplay">40%</h2>
+        </div>
+    </div>
+
+    <script>
+        let audioCtx, oscillator, delayNode, feedbackNode, dryGain;
+
+        const powerBtn = document.getElementById('powerBtn');
+        const timeSlider = document.getElementById('timeSlider');
+        const feedbackSlider = document.getElementById('feedbackSlider');
+
+        powerBtn.addEventListener('click', () => {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+
+                // 1. Source (A short "beeping" oscillator)
+                oscillator = audioCtx.createOscillator();
+                oscillator.type = 'square'; // Sounds like an old video game
+                oscillator.frequency.value = 440;
+
+                // 2. The Echo Nodes
+                delayNode = audioCtx.createDelay();
+                delayNode.delayTime.value = timeSlider.value;
+
+                feedbackNode = audioCtx.createGain();
+                feedbackNode.gain.value = feedbackSlider.value;
+
+                // 3. THE FEEDBACK LOOP (The Secret Sauce)
+                // Sound goes: Delay -> Feedback -> Back to Delay
+                delayNode.connect(feedbackNode);
+                feedbackNode.connect(delayNode);
+
+                // 4. Connect to Speakers
+                oscillator.connect(delayNode); // Send sound to echo
+                oscillator.connect(audioCtx.destination); // Send original sound to speakers
+                delayNode.connect(audioCtx.destination); // Send echo to speakers
+
+                oscillator.start();
+                powerBtn.innerText = "STOP AUDIO";
+                powerBtn.style.background = "#ff4444";
+            } else {
+                audioCtx.close();
+                audioCtx = null;
+                powerBtn.innerText = "START AUDIO";
+                powerBtn.style.background = "#00a2ff";
+            }
+        });
+
+        // Update values in real-time
+        timeSlider.oninput = () => {
+            let val = timeSlider.value;
+            document.getElementById('timeDisplay').innerText = val + "s";
+            if (delayNode) delayNode.delayTime.setTargetAtTime(val, audioCtx.currentTime, 0.01);
+        };
+
+        feedbackSlider.oninput = () => {
+            let val = feedbackSlider.value;
+            document.getElementById('feedbackDisplay').innerText = Math.round(val * 100) + "%";
+            if (feedbackNode) feedbackNode.gain.setTargetAtTime(val, audioCtx.currentTime, 0.01);
+        };
+    </script>
+</body>
+</html>
