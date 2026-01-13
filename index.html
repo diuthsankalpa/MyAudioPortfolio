@@ -7,7 +7,20 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0b0e14; color: #e0e0e0; margin: 0; padding: 40px; }
         header { text-align: center; margin-bottom: 50px; }
-        h1 { color: #00ff88; letter-spacing: 2px; }
+        h1 { color: #00ff88; letter-spacing: 2px; margin-bottom: 10px; }
+        
+        /* New styles for the visualizer */
+        #mainVisualizer { 
+            width: 100%; 
+            max-width: 800px; 
+            height: 150px;
+            background: #000; 
+            border-radius: 12px; 
+            border: 1px solid #333; 
+            margin: 20px auto;
+            display: block;
+        }
+
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
         .card { background: #1a1f29; border: 1px solid #333; border-radius: 12px; padding: 25px; transition: transform 0.3s; text-align: center; }
         .card:hover { transform: translateY(-10px); border-color: #00ff88; }
@@ -22,6 +35,8 @@
     <header>
         <h1>AUDIO SIGNAL PROCESSING PORTFOLIO</h1>
         <p>Built with Web Audio API | No Terminal, Pure Logic</p>
+        
+        <canvas id="mainVisualizer"></canvas>
     </header>
 
     <div class="grid">
@@ -46,6 +61,42 @@
             <a href="project3.html" class="btn">Launch Project</a>
         </div>
     </div>
+
+    <script>
+        const canvas = document.getElementById('mainVisualizer');
+        const ctx = canvas.getContext('2d');
+
+        // Set internal resolution
+        canvas.width = 800;
+        canvas.height = 150;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Fading effect for the wave tail
+            ctx.fillStyle = 'rgba(11, 14, 20, 0.2)'; 
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00ff88';
+            ctx.beginPath();
+            
+            // Draw a smooth mathematical sine wave (The "Pulse")
+            for (let i = 0; i < canvas.width; i++) {
+                const frequency = 0.01;
+                const amplitude = 40;
+                const y = (canvas.height / 2) + Math.sin(i * frequency + Date.now() * 0.004) * amplitude;
+                
+                if (i === 0) ctx.moveTo(i, y);
+                else ctx.lineTo(i, y);
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0; // Reset shadow for performance
+        }
+        animate();
+    </script>
 
 </body>
 </html>
