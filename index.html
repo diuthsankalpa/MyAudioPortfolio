@@ -1,102 +1,229 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Developer Portfolio | Signal Processing</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0b0e14; color: #e0e0e0; margin: 0; padding: 40px; }
-        header { text-align: center; margin-bottom: 50px; }
-        h1 { color: #00ff88; letter-spacing: 2px; margin-bottom: 10px; }
-        
-        /* New styles for the visualizer */
-        #mainVisualizer { 
-            width: 100%; 
-            max-width: 800px; 
-            height: 150px;
-            background: #000; 
-            border-radius: 12px; 
-            border: 1px solid #333; 
-            margin: 20px auto;
-            display: block;
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Live Audio Engine Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#21c45d",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#122017",
+                    },
+                    fontFamily: { "display": ["Space Grotesk", "sans-serif"] },
+                },
+            },
         }
+    </script>
+    <style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48 }
+        canvas { width: 100%; height: 140px; border-radius: 1rem; }
+        input[type="range"] { accent-color: #21c45d; cursor: pointer; width: 100%; }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; }
-        .card { background: #1a1f29; border: 1px solid #333; border-radius: 12px; padding: 25px; transition: transform 0.3s; text-align: center; }
-        .card:hover { transform: translateY(-10px); border-color: #00ff88; }
-        .card h2 { margin-top: 0; color: #fff; }
-        .badge { background: #00ff88; color: #0b0e14; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
-        p { line-height: 1.6; color: #aaa; }
-        .btn { display: inline-block; margin-top: 20px; padding: 12px 25px; background: #00ff88; color: #0b0e14; text-decoration: none; border-radius: 6px; font-weight: bold; }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px rgba(33, 196, 93, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(33, 196, 93, 0.5); }
+            100% { box-shadow: 0 0 5px rgba(33, 196, 93, 0.2); }
+        }
+        .original-active {
+            animation: pulse-glow 2s infinite ease-in-out;
+            backdrop-filter: blur(8px);
+        }
     </style>
 </head>
-<body>
+<body class="font-display bg-background-light dark:bg-background-dark text-black dark:text-white transition-colors duration-500">
+    <div class="flex flex-col min-h-screen items-center py-10 px-4">
+        <div class="max-w-[960px] w-full flex flex-col gap-6">
+            
+            <header class="flex items-center justify-between border-b border-white/10 pb-6">
+                <div class="flex items-center gap-4">
+                    <div class="size-8 text-primary">
+                        <svg fill="currentColor" viewBox="0 0 48 48"><path d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z"></path></svg>
+                    </div>
+                    <h1 class="text-2xl font-bold tracking-tight">Live Audio Engine</h1>
+                </div>
+                
+                <div class="flex flex-col items-end gap-1">
+                    <div class="flex items-center gap-3">
+                        <div id="modeStatus" class="px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wider transition-all duration-500 bg-white/5 text-white/40 border border-white/10">
+                            Waiting for Audio
+                        </div>
+                        <button id="resetBtn" class="bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-lg text-sm font-bold opacity-0 transition-all duration-300 pointer-events-none border border-primary/20">
+                            Reset All
+                        </button>
+                    </div>
+                    <p id="resetHint" class="text-[11px] text-primary/60 italic transition-all duration-500 opacity-0 translate-y-1">
+                        Tip: Click "Reset All" above to return to original audio
+                    </p>
+                </div>
+            </header>
 
-    <header>
-        <h1>AUDIO SIGNAL PROCESSING PORTFOLIO</h1>
-        <p>Built with Web Audio API | No Terminal, Pure Logic</p>
-        
-        <canvas id="mainVisualizer"></canvas>
-    </header>
+            <div id="dropzone" class="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-white/20 p-8 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer" onclick="document.getElementById('audioFile').click()">
+                <p id="fileName" class="text-lg font-bold">Select or Drop Audio File</p>
+                <input type="file" id="audioFile" accept="audio/*" class="hidden">
+                <span class="text-sm text-white/40 italic">Supports MP3, WAV, AAC</span>
+            </div>
 
-    <div class="grid">
-        <div class="card">
-            <span class="badge">AMPLITUDE</span>
-            <h2>Gain Station</h2>
-            <p>A real-time volume processor using the AudioContext GainNode. Handles linear multiplication of audio buffers.</p>
-            <a href="project1.html" class="btn">Launch Project</a>
-        </div>
+            <div class="bg-white/5 rounded-2xl p-6 flex flex-col items-center gap-6 border border-white/5 shadow-2xl">
+                <canvas id="visualizer"></canvas>
+                <div class="flex gap-6">
+                    <button id="playBtn" disabled class="size-16 rounded-full bg-primary text-black flex items-center justify-center disabled:opacity-30 hover:scale-110 transition shadow-[0_0_20px_rgba(33,196,93,0.4)]">
+                        <span class="material-symbols-outlined !text-4xl">play_arrow</span>
+                    </button>
+                    <button id="stopBtn" class="size-16 rounded-full bg-white/5 text-white flex items-center justify-center hover:bg-red-500/80 hover:scale-105 transition border border-white/10">
+                        <span class="material-symbols-outlined !text-4xl">stop</span>
+                    </button>
+                </div>
+            </div>
 
-        <div class="card">
-            <span class="badge">WAVESHAPING</span>
-            <h2>Distortion Unit</h2>
-            <p>Custom Waveshaper implementation using a Float32Array transfer function to achieve non-linear saturation.</p>
-            <a href="project2.html" class="btn">Launch Project</a>
-        </div>
-
-        <div class="card">
-            <span class="badge">TIME DOMAIN</span>
-            <h2>Space Echo</h2>
-            <p>Digital delay system featuring a feedback loop architecture and real-time parameter smoothing.</p>
-            <a href="project3.html" class="btn">Launch Project</a>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white/5 p-8 rounded-2xl border border-white/5">
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm uppercase tracking-widest font-bold opacity-60"><label>Noise Filter</label><span id="fVal" class="text-primary">0Hz</span></div>
+                    <input type="range" id="noiseFilter" min="0" max="2000" value="0">
+                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm uppercase tracking-widest font-bold opacity-60"><label>Echo Time</label><span id="dVal" class="text-primary">0s</span></div>
+                    <input type="range" id="delayTime" min="0" max="1" step="0.01" value="0">
+                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm uppercase tracking-widest font-bold opacity-60"><label>Echo Depth</label><span id="feedVal" class="text-primary">0%</span></div>
+                    <input type="range" id="feedback" min="0" max="0.8" step="0.01" value="0">
+                </div>
+                <div class="space-y-3">
+                    <div class="flex justify-between text-sm uppercase tracking-widest font-bold opacity-60"><label>Master Volume</label><span id="vVal" class="text-primary">100%</span></div>
+                    <input type="range" id="volume" min="0" max="2" step="0.1" value="1">
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        const canvas = document.getElementById('mainVisualizer');
+        let audioCtx, source, analyser, gainNode, delayNode, feedbackNode, filterNode, audioBuffer;
+        let isPlaying = false;
+        const canvas = document.getElementById('visualizer');
         const ctx = canvas.getContext('2d');
 
-        // Set internal resolution
-        canvas.width = 800;
-        canvas.height = 150;
+        document.getElementById('audioFile').onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            document.getElementById('fileName').innerHTML = `<span class="text-primary">Loaded:</span> ${file.name}`;
+            const arrayBuffer = await file.arrayBuffer();
+            audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            document.getElementById('playBtn').disabled = false;
+            updateNodes(); 
+        };
 
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            // Fading effect for the wave tail
-            ctx.fillStyle = 'rgba(11, 14, 20, 0.2)'; 
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.strokeStyle = '#00ff88';
-            ctx.lineWidth = 3;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#00ff88';
-            ctx.beginPath();
-            
-            // Draw a smooth mathematical sine wave (The "Pulse")
-            for (let i = 0; i < canvas.width; i++) {
-                const frequency = 0.01;
-                const amplitude = 40;
-                const y = (canvas.height / 2) + Math.sin(i * frequency + Date.now() * 0.004) * amplitude;
-                
-                if (i === 0) ctx.moveTo(i, y);
-                else ctx.lineTo(i, y);
-            }
-            ctx.stroke();
-            ctx.shadowBlur = 0; // Reset shadow for performance
+        document.getElementById('playBtn').onclick = () => {
+            if (isPlaying) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            startAudio();
+        };
+
+        function startAudio() {
+            source = audioCtx.createBufferSource();
+            source.buffer = audioBuffer;
+            analyser = audioCtx.createAnalyser();
+            filterNode = audioCtx.createBiquadFilter();
+            filterNode.type = "highpass";
+            delayNode = audioCtx.createDelay();
+            feedbackNode = audioCtx.createGain();
+            gainNode = audioCtx.createGain();
+
+            source.connect(filterNode);
+            filterNode.connect(analyser);
+            analyser.connect(delayNode);
+            delayNode.connect(feedbackNode);
+            feedbackNode.connect(delayNode);
+            delayNode.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            updateNodes();
+            source.start(0);
+            isPlaying = true;
+            source.onended = () => isPlaying = false;
+            draw();
         }
-        animate();
-    </script>
 
+        function updateNodes() {
+            const noise = document.getElementById('noiseFilter').value;
+            const delay = document.getElementById('delayTime').value;
+            const feed = document.getElementById('feedback').value;
+            const vol = document.getElementById('volume').value;
+
+            if (filterNode) {
+                filterNode.frequency.setTargetAtTime(noise, audioCtx.currentTime, 0.05);
+                delayNode.delayTime.setTargetAtTime(delay, audioCtx.currentTime, 0.05);
+                feedbackNode.gain.setTargetAtTime(feed, audioCtx.currentTime, 0.05);
+                gainNode.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.05);
+            }
+
+            document.getElementById('fVal').innerText = noise + "Hz";
+            document.getElementById('dVal').innerText = delay + "s";
+            document.getElementById('feedVal').innerText = Math.round(feed * 100) + "%";
+            document.getElementById('vVal').innerText = Math.round(vol * 100) + "%";
+
+            // UI LOGIC FOR STATUS & RESET HINT
+            const statusBadge = document.getElementById('modeStatus');
+            const resetBtn = document.getElementById('resetBtn');
+            const resetHint = document.getElementById('resetHint');
+
+            if (noise == 0 && delay == 0 && feed == 0) {
+                statusBadge.innerHTML = `<span class="flex items-center gap-2">✨ Original Audio</span>`;
+                statusBadge.className = "px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wider transition-all duration-500 bg-primary/20 text-primary border border-primary/40 original-active";
+                resetBtn.style.opacity = "0";
+                resetBtn.style.pointerEvents = "none";
+                resetHint.style.opacity = "0"; // Hide hint when already in original mode
+                resetHint.style.transform = "translateY(5px)";
+            } else {
+                statusBadge.innerHTML = `<span class="flex items-center gap-2">🎛️ Live Processing</span>`;
+                statusBadge.className = "px-5 py-2 rounded-full text-sm font-semibold uppercase tracking-wider transition-all duration-500 bg-white/10 text-white border border-white/20";
+                resetBtn.style.opacity = "1";
+                resetBtn.style.pointerEvents = "auto";
+                resetHint.style.opacity = "1"; // Show the helpful message
+                resetHint.style.transform = "translateY(0px)";
+            }
+        }
+
+        document.getElementById('resetBtn').onclick = () => {
+            document.getElementById('noiseFilter').value = 0;
+            document.getElementById('delayTime').value = 0;
+            document.getElementById('feedback').value = 0;
+            updateNodes();
+        };
+
+        document.querySelectorAll('input').forEach(input => input.oninput = updateNodes);
+
+        document.getElementById('stopBtn').onclick = () => {
+            if (source) { source.stop(); isPlaying = false; }
+        };
+
+        function draw() {
+            if (!isPlaying) return;
+            requestAnimationFrame(draw);
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const barWidth = (canvas.width / bufferLength) * 2.5;
+            let x = 0;
+            for(let i = 0; i < bufferLength; i++) {
+                const barHeight = (dataArray[i] / 255) * canvas.height;
+                ctx.fillStyle = "#21c45d";
+                ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+                x += barWidth;
+            }
+        }
+    </script>
 </body>
 </html>
